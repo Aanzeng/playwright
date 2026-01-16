@@ -1,0 +1,3 @@
+node run.js
+
+npx playwright codegen --user-data-dir=./user-data https://pay.line.me/portal/tw/auth/login

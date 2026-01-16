@@ -57,18 +57,65 @@ const { chromium } = require('playwright');
         await page.getByRole('button', { name: '登入', exact: true }).click();
         await page.waitForTimeout(2000);
 
-        // 處理緊急通知
+        // 處理新服務上線浮窗
         try {
-          await page.locator('#urgentPromotionCloseButton').click();
+          await page.waitForTimeout(1000);
+          
+          // 方法1: 嘗試找到關閉按鈕(X)
+          let closed = false;
+          
+          // 尋找span或button中包含X的元素
+          const closeButtons = await page.locator('button, span, div').all();
+          for (const btn of closeButtons) {
+            try {
+              const text = await btn.textContent();
+              if (text && text.trim() === '×') {
+                await btn.click();
+                console.log('✓ 已通過X按鈕關閉新服務上線浮窗');
+                closed = true;
+                await page.waitForTimeout(1000);
+                break;
+              }
+            } catch (e) {
+              // 繼續尋找
+            }
+          }
+          
+          // 方法2: 如果方法1失敗，嘗試點擊"今日不再顯示"
+          if (!closed) {
+            try {
+              const notShowButton = page.locator('text=今日不再顯示').first();
+              if (await notShowButton.isVisible()) {
+                await notShowButton.click();
+                console.log('✓ 已通過"今日不再顯示"關閉新服務上線浮窗');
+                closed = true;
+                await page.waitForTimeout(1000);
+              }
+            } catch (e) {
+              // 繼續
+            }
+          }
+          
+          if (!closed) {
+            console.log('⚠ 未找到浮窗關閉按鈕');
+          }
         } catch (e) {
-          console.log('沒有找到緊急通知');
+          console.log('處理浮窗時出錯:', e.message);
+        }
+
+        // 處理緊急通知 (5秒超時)
+        try {
+          await page.locator('#urgentPromotionCloseButton').click({ timeout: 5000 });
+          console.log('✓ 已關閉緊急通知');
+        } catch (e) {
+          console.log('沒有找到緊急通知或超時');
         }
 
         // 導航至資料下載頁面
         await page.getByRole('button', { name: '資料下載' }).click();
         await page.waitForTimeout(1000);
-        await page.getByRole('link', { name: '下載設定' }).click();
-        await page.waitForTimeout(1000);
+        //await page.getByRole('link', { name: '下載設定' }).click();
+        //await page.waitForTimeout(1000);
         await page.getByRole('link', { name: '下載交易記錄' }).click();
         await page.waitForTimeout(1000);
         
@@ -156,6 +203,6 @@ const { chromium } = require('playwright');
     if (context) {
       await context.close(); // 呼叫 context.close() 關閉整個瀏覽器上下文並釋放資源
     }
-  }
+  } 
 
 })();
