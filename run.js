@@ -181,9 +181,88 @@ const { chromium } = require('playwright');
           const savePath = path.join(desktopPath, fileName);
           await download.saveAs(savePath);
 
-          console.log(`✓ 檔案已下載至: ${savePath}`);
+          console.log(`✓ 交易記錄已下載至: ${savePath}`);
         } else {
           console.log(`  ✗ 找不到已處理的記錄`);
+        }
+
+        // ============ 下載撨款記錄 ============
+        console.log(`\n  📥 開始下載撨款記錄...`);
+        
+        try {
+          // 回到資料下載頁面並選擇下載撨款記錄
+          await page.getByRole('button', { name: '資料下載' }).click();
+          await page.waitForTimeout(1000);
+          await page.getByRole('link', { name: '下載撥款記錄' }).click();
+          await page.waitForTimeout(1000);
+          
+          // 選擇月份並生成EXCEL
+          await page.getByRole('link', { name: '個月' }).click();
+          await page.waitForTimeout(1000);
+          await page.getByRole('link', { name: 'EXCEL' }).click();
+          await page.waitForTimeout(2000);
+
+          // 進入撨款記錄下載頁面
+          await page.goto('https://pay.line.me/tw/center/download/settleDownloadView?locale=zh_TW');
+          await page.waitForTimeout(2000);
+
+          // 等待第一行"已處理"出現
+          console.log(`  ⏳ 等待第一行已處理記錄...`);
+          let isWaiting = true;
+          let waitRetryCount = 0;
+          const maxWaitRetries = 60; // 最多等待60次 * 3秒 = 3分鐘
+
+          while (isWaiting && waitRetryCount < maxWaitRetries) {
+            // 檢查是否有"已處理"的狀態
+            const processedCell = await page.locator('table tbody tr').filter({
+              has: page.locator('td:has-text("已處理")')
+            }).first();
+
+            if (await processedCell.isVisible()) {
+              isWaiting = false;
+              console.log(`  ✓ 已處理記錄已出現`);
+            } else {
+              console.log(`  ⏳ 等待中... (${waitRetryCount + 1}/${maxWaitRetries})`);
+              await page.waitForTimeout(3000);
+              // 刷新頁面以獲取最新狀態
+              await page.reload();
+              await page.waitForTimeout(1000);
+              waitRetryCount++;
+            }
+          }
+
+          if (waitRetryCount >= maxWaitRetries) {
+            console.log(`  ⚠ 等待超時，無法完成撥款記錄下載`);
+          }
+
+          // 找到第一行"已處理"的記錄並點擊download按鈕
+          console.log(`  📥 搜尋撥 款記錄的下載按鈕...`);
+          
+          const settleFirstProcessedRow = await page.locator('table tbody tr').filter({
+            has: page.locator('td:has-text("已處理")')
+          }).first();
+
+          if (await settleFirstProcessedRow.isVisible()) {
+            // 在該行中找到Download按鈕
+            const settleDownloadButton = settleFirstProcessedRow.locator('button:has-text("Download")').first();
+            
+            // 設置下載監聽器
+            const settleDownloadPromise = page.waitForEvent('download');
+            await settleDownloadButton.click();
+            const settleDownload = await settleDownloadPromise;
+
+            // 將文件保存到桌面
+            const settleFileName = settleDownload.suggestedFilename();
+            const settleSavePath = path.join(desktopPath, settleFileName);
+            await settleDownload.saveAs(settleSavePath);
+
+            console.log(`✓ 撥款記錄已下載至: ${settleSavePath}`);
+          } else {
+            console.log(`  ✗ 找不到撥款記錄的已處理項目`);
+          }
+
+        } catch (error) {
+          console.error(`  ✗ 下載撥款記錄時出現錯誤:`, error.message);
         }
 
         console.log(`✓ 帳號 ${user_ID} 處理完成`);
