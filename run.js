@@ -1,6 +1,7 @@
 // 引入 Node 內建 path 模組以處理檔案路徑
 const path = require('path');
 const fs = require('fs');
+const os = require('os');
 
 // 從 Playwright 函式庫引入 chromium 瀏覽器控制器
 const { chromium } = require('playwright');
@@ -8,6 +9,8 @@ const { chromium } = require('playwright');
 // 開始一個立即執行的非同步函式，用來執行非同步程式碼
 (async () => {
   let context;
+  // 獲取桌面路徑
+  const desktopPath = path.join(os.homedir(), 'Desktop');
 
   try {
     // 讀取 credentials.txt 檔案並解析
@@ -41,18 +44,100 @@ const { chromium } = require('playwright');
       const page = await context.newPage();
 
       try {
+        // 登入
         await page.goto('https://pay.line.me/portal/tw/auth/login/id?isEpiSwitchOn=true');
-
-        await page.locator('div').nth(3).click();
+        await page.getByText('LINE Pay @line.pay 記住我的商店ID').click();
         await page.getByRole('textbox', { name: '請輸入商店ID' }).click();
         await page.getByRole('textbox', { name: '請輸入商店ID' }).fill(user_ID);
         await page.getByRole('button', { name: '下一步' }).click();
-        await page.getByRole('textbox', { name: '請輸入密碼' }).click();
+        await page.getByRole('textbox', { name: '請輸入密碼' }).click({
+          modifiers: ['ControlOrMeta']
+        });
         await page.getByRole('textbox', { name: '請輸入密碼' }).fill(user_PW);
         await page.getByRole('button', { name: '登入', exact: true }).click();
-        await page.locator('#btn_epi_close').click();
-        await page.getByRole('button', { name: '管理交易' }).click();
-        await page.getByRole('link', { name: '交易記錄' }).click();
+        await page.waitForTimeout(2000);
+
+        // 處理緊急通知
+        try {
+          await page.locator('#urgentPromotionCloseButton').click();
+        } catch (e) {
+          console.log('沒有找到緊急通知');
+        }
+
+        // 導航至資料下載頁面
+        await page.getByRole('button', { name: '資料下載' }).click();
+        await page.waitForTimeout(1000);
+        await page.getByRole('link', { name: '下載設定' }).click();
+        await page.waitForTimeout(1000);
+        await page.getByRole('link', { name: '下載交易記錄' }).click();
+        await page.waitForTimeout(1000);
+        
+        // 選擇月份並生成EXCEL
+        await page.getByRole('link', { name: '個月' }).click();
+        await page.waitForTimeout(1000);
+        await page.getByRole('link', { name: 'EXCEL' }).click();
+        await page.waitForTimeout(2000);
+
+        // 進入下載頁面並檢測最新一筆正在處理的資料
+        await page.getByRole('link', { name: '下載交易記錄' }).click();
+        await page.waitForTimeout(2000);
+
+        // 等待頁面加載並檢測"正在處理"的最新一筆資料
+        console.log(`  ⏳ 檢測最新一筆正在處理的資料...`);
+        
+        let isProcessing = true;
+        let retryCount = 0;
+        const maxRetries = 60; // 最多等待60次 * 3秒 = 3分鐘
+
+        while (isProcessing && retryCount < maxRetries) {
+          // 檢查是否還有"正在處理"的狀態
+          const processingCell = await page.locator('table tbody tr').filter({
+            has: page.locator('td:has-text("正在處理")')
+          }).first();
+
+          if (await processingCell.isVisible()) {
+            console.log(`  ⏳ 仍在處理中，等待中... (${retryCount + 1}/${maxRetries})`);
+            await page.waitForTimeout(3000);
+            // 刷新頁面以獲取最新狀態
+            await page.reload();
+            await page.waitForTimeout(1000);
+            retryCount++;
+          } else {
+            isProcessing = false;
+            console.log(`  ✓ 資料已處理完成`);
+          }
+        }
+
+        if (retryCount >= maxRetries) {
+          console.log(`  ⚠ 等待超時，無法完成處理`);
+        }
+
+        // 等待狀態變成"已處理"後，點擊第一筆的download按鈕
+        console.log(`  📥 搜尋第一筆已處理記錄的下載按鈕...`);
+        
+        // 找到第一行"已處理"的記錄
+        const firstProcessedRow = await page.locator('table tbody tr').filter({
+          has: page.locator('td:has-text("已處理")')
+        }).first();
+
+        if (await firstProcessedRow.isVisible()) {
+          // 在該行中找到下載按鈕
+          const downloadButton = firstProcessedRow.locator('button');
+          
+          // 設置下載監聽器
+          const downloadPromise = page.waitForEvent('download');
+          await downloadButton.click();
+          const download = await downloadPromise;
+
+          // 將文件保存到桌面
+          const fileName = download.suggestedFilename();
+          const savePath = path.join(desktopPath, fileName);
+          await download.saveAs(savePath);
+
+          console.log(`✓ 檔案已下載至: ${savePath}`);
+        } else {
+          console.log(`  ✗ 找不到已處理的記錄`);
+        }
 
         console.log(`✓ 帳號 ${user_ID} 處理完成`);
 
