@@ -186,13 +186,13 @@ const { chromium } = require('playwright');
           console.log(`  ✗ 找不到已處理的記錄`);
         }
 
-        // ============ 下載撨款記錄 ============
-        console.log(`\n  📥 開始下載撨款記錄...`);
+        // ============ 下載撨款記錄 ============ 
+        console.log(`\n  📥 開始下載撥款記錄...`);
         
         try {
           // 回到資料下載頁面並選擇下載撨款記錄
-          await page.getByRole('button', { name: '資料下載' }).click();
-          await page.waitForTimeout(1000);
+          //await page.getByRole('button', { name: '資料下載' }).click();
+          //await page.waitForTimeout(1000);
           await page.getByRole('link', { name: '下載撥款記錄' }).click();
           await page.waitForTimeout(1000);
           
@@ -236,7 +236,7 @@ const { chromium } = require('playwright');
           }
 
           // 找到第一行"已處理"的記錄並點擊download按鈕
-          console.log(`  📥 搜尋撥 款記錄的下載按鈕...`);
+          console.log(`  📥 搜尋撥款記錄的下載按鈕...`);
           
           const settleFirstProcessedRow = await page.locator('table tbody tr').filter({
             has: page.locator('td:has-text("已處理")')
