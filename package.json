@@ -8,9 +8,18 @@
   "keywords": [],
   "author": "Will 保哥",
   "license": "MIT",
-  "description": "",
+  "description": "1. 初始化專案目錄",
   "dependencies": {
-    "@playwright/browser-chromium": "^1.55.1",
-    "playwright": "^1.55.1"
-  }
+    "@playwright/browser-chromium": "^1.57.0",
+    "playwright": "^1.57.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Aanzeng/playwright.git"
+  },
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Aanzeng/playwright/issues"
+  },
+  "homepage": "https://github.com/Aanzeng/playwright#readme"
 }
