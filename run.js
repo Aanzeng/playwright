@@ -9,8 +9,51 @@ const { chromium } = require('playwright');
 // 開始一個立即執行的非同步函式，用來執行非同步程式碼
 (async () => {
   let context;
-  // 獲取桌面路徑
-  const desktopPath = path.join(os.homedir(), 'Desktop');
+  // 定義檔案儲存路徑
+  const linePayPath = 'C:\\trans\\linepay';
+  const bakPath = path.join(linePayPath, 'bak');
+
+  try {
+    // ============ 初始化檔案夾 ============
+    console.log('📁 初始化檔案夾...');
+    
+    // 檢查C:\trans\linepay是否存在，如不存在則建立
+    if (!fs.existsSync(linePayPath)) {
+      fs.mkdirSync(linePayPath, { recursive: true });
+      console.log(`✓ 已建立檔案夾: ${linePayPath}`);
+    }
+
+    // 檢查C:\trans\linepay\bak是否存在，如不存在則建立
+    if (!fs.existsSync(bakPath)) {
+      fs.mkdirSync(bakPath, { recursive: true });
+      console.log(`✓ 已建立備份檔案夾: ${bakPath}`);
+    }
+
+    // 移動C:\trans\linepay中的現有檔案到C:\trans\linepay\bak
+    const files = fs.readdirSync(linePayPath);
+    const filesToMove = files.filter(file => {
+      const filePath = path.join(linePayPath, file);
+      // 只移動檔案，不移動資料夾（bak除外）
+      return fs.statSync(filePath).isFile() && file !== 'bak';
+    });
+
+    if (filesToMove.length > 0) {
+      console.log(`\n🔄 備份現有檔案到: ${bakPath}`);
+      filesToMove.forEach(file => {
+        const srcPath = path.join(linePayPath, file);
+        const destPath = path.join(bakPath, file);
+        
+        // 如果備份資料夾中已有同名檔案，先刪除
+        if (fs.existsSync(destPath)) {
+          fs.unlinkSync(destPath);
+        }
+        
+        fs.renameSync(srcPath, destPath);
+        console.log(`  ✓ 已移動: ${file}`);
+      });
+    }
+
+    console.log(`\n✓ 檔案夾初始化完成\n`);
 
   try {
     // 讀取 credentials.txt 檔案並解析
@@ -176,9 +219,9 @@ const { chromium } = require('playwright');
           await downloadButton.click();
           const download = await downloadPromise;
 
-          // 將文件保存到桌面
+          // 將文件保存到C:\trans\linepay
           const fileName = download.suggestedFilename();
-          const savePath = path.join(desktopPath, fileName);
+          const savePath = path.join(linePayPath, fileName);
           await download.saveAs(savePath);
 
           console.log(`✓ 交易記錄已下載至: ${savePath}`);
@@ -251,9 +294,9 @@ const { chromium } = require('playwright');
             await settleDownloadButton.click();
             const settleDownload = await settleDownloadPromise;
 
-            // 將文件保存到桌面
+            // 將文件保存到C:\trans\linepay
             const settleFileName = settleDownload.suggestedFilename();
-            const settleSavePath = path.join(desktopPath, settleFileName);
+            const settleSavePath = path.join(linePayPath, settleFileName);
             await settleDownload.saveAs(settleSavePath);
 
             console.log(`✓ 撥款記錄已下載至: ${settleSavePath}`);
