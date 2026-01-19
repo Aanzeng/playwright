@@ -25,11 +25,8 @@ const { chromium } = require('playwright');
 
     await page.goto('https://github.com/user/repo/settings/access');
 
-    await page.getByRole('button', { name: 'Add people' }).click();
-    await page.getByRole('combobox', { name: 'Find people' }).fill('user1');
-    await page.getByRole('listbox', { name: 'results' }).getByRole('strong').click();
-    await page.getByRole('button', { name: 'Add user1' }).click();
 
+    
   } catch (error) {
     console.error('執行過程中發生錯誤:', error);
   } finally {

@@ -55,8 +55,8 @@ const { chromium } = require('playwright');
 
     console.log(`\n✓ 檔案夾初始化完成\n`);
 
-    // 讀取 credentials.txt 檔案並解析
-    const credentialsPath = path.resolve(process.cwd(), 'credentials.txt');
+    // 讀取 credentials-linepay.txt 檔案並解析
+    const credentialsPath = path.resolve(process.cwd(), 'credentials-linepay.txt');
     const credentials = fs.readFileSync(credentialsPath, 'utf-8')
       .trim()
       .split('\n')
