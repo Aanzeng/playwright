@@ -46,7 +46,7 @@ const { chromium } = require('playwright');
       // 從URL中提取店铺名称 (XXX from https://XXX.cyberbiz.co/admin)
       const shopNameMatch = loginUrl.match(/https:\/\/(.+?)\.cyberbiz\.co/);
       const shopName = shopNameMatch ? shopNameMatch[1] : `shop_${i + 1}`;
-      const savePath = `C:\\trans\\`;
+      const savePath = `C:\\trans\\cyberbiz\\`;
 
       console.log(`\n=== 處理第 ${i + 1} 個帳號 ===`);
       console.log(`🌐 登入網址: ${loginUrl}`);
@@ -268,8 +268,14 @@ const { chromium } = require('playwright');
         console.log(`\n✓ 找到下載按鈕！開始下載第一個...`);
         
         // ============ 備份現有檔案 ============
-        const bakPath = path.join(shopPath, 'BAK');
-        const files = fs.readdirSync(shopPath);
+        // 檢查目錄是否存在
+        if (!fs.existsSync(savePath)) {
+          fs.mkdirSync(savePath, { recursive: true });
+          console.log(`  ✓ 已建立檔案夾: ${savePath}`);
+        }
+        
+        const bakPath = path.join(savePath, 'BAK');
+        const files = fs.readdirSync(savePath);
         const filesToMove = files.filter(file => {
           const filePath = path.join(shopPath, file);
           return fs.statSync(filePath).isFile() && file !== 'BAK';
@@ -326,8 +332,14 @@ const { chromium } = require('playwright');
           console.log(`✓ 找到有下載按鈕的對帳單: ${rowText.substring(0, 100)}`);
           
           // ============ 備份現有檔案 ============
-          const bakPath = path.join(shopPath, 'BAK');
-          const files = fs.readdirSync(shopPath);
+          // 檢查目錄是否存在
+          if (!fs.existsSync(savePath)) {
+            fs.mkdirSync(savePath, { recursive: true });
+            console.log(`  ✓ 已建立檔案夾: ${savePath}`);
+          }
+          
+          const bakPath = path.join(savePath, 'BAK');
+          const files = fs.readdirSync(savePath);
           const filesToMove = files.filter(file => {
             const filePath = path.join(shopPath, file);
             // 只移動檔案，不移動資料夾（BAK除外）
