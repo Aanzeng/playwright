@@ -227,11 +227,11 @@ const { chromium } = require('playwright');
           const download = await downloadPromise;
 
           // 將文件保存到C:\trans\linepay
-          // 保留原始文件名中的日期格式（20251224000000_20260123235959）
+          // 保留原始文件名中的日期格式，但只取年月日部分（20251224-20260123）
           const originalFileName = download.suggestedFilename();
-          // 提取日期部分（例如：20251224000000_20260123235959 或類似格式）
-          const dateMatch = originalFileName.match(/(\d{14}_\d{14})/);
-          const dateInfo = dateMatch ? dateMatch[1] : 'unknown';
+          // 從 YYYYMMDDHHMMSS_YYYYMMDDHHMMSS 格式提取為 YYYYMMDD-YYYYMMDD
+          const dateMatch = originalFileName.match(/(\d{8})\d{6}_(\d{8})\d{6}/);
+          const dateInfo = dateMatch ? `${dateMatch[1]}-${dateMatch[2]}` : 'unknown';
           const newFileName = `${storeName}-${dateInfo}.xlsx`;
           const savePath = path.join(linePayPath, newFileName);
           await download.saveAs(savePath);
