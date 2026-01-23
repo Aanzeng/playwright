@@ -236,6 +236,8 @@ const { chromium } = require('playwright');
         }
 
         // ============ 下載撨款記錄 ============ 
+        // 注意：撨款記錄下載功能已註解，暫時不執行
+        /*
         console.log(`\n  📥 開始下載撥款記錄...`);
         
         try {
@@ -312,8 +314,7 @@ const { chromium } = require('playwright');
 
         } catch (error) {
           console.error(`  ✗ 下載撥款記錄時出現錯誤:`, error.message);
-        }
-
+        }        */
         console.log(`✓ 帳號 ${user_ID} 處理完成`);
 
       } catch (error) {
