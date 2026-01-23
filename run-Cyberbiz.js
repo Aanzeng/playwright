@@ -12,13 +12,15 @@ const { chromium } = require('playwright');
 
   try {
     // 讀取 credentials-cyberbiz.txt 檔案並解析
+    // 格式: 店名,網址,帳號,密碼
     const credentialsPath = path.resolve(process.cwd(), 'credentials-cyberbiz.txt');
     const credentials = fs.readFileSync(credentialsPath, 'utf-8')
       .trim()
       .split('\n')
       .map(line => {
-        const [url, email, password] = line.split(',');
+        const [shopName, url, email, password] = line.split(',');
         return { 
+          shopName: shopName.trim(),
           url: url.trim(), 
           email: email.trim(), 
           password: password.trim() 
@@ -82,18 +84,15 @@ const { chromium } = require('playwright');
 
     // 迴圈遍歷每一個帳號
     for (let i = 0; i < credentials.length; i++) {
+      const shopName = credentials[i].shopName;
       const loginUrl = credentials[i].url;
       const email = credentials[i].email;
       const password = credentials[i].password;
 
-      // 從URL中提取店铺名称 (XXX from https://XXX.cyberbiz.co/admin)
-      const shopNameMatch = loginUrl.match(/https:\/\/(.+?)\.cyberbiz\.co/);
-      const shopName = shopNameMatch ? shopNameMatch[1] : `shop_${i + 1}`;
-
       console.log(`\n=== 處理第 ${i + 1} 個帳號 ===`);
+      console.log(`🏪 店名: ${shopName}`);
       console.log(`🌐 登入網址: ${loginUrl}`);
       console.log(`📧 帳號: ${email}`);
-      console.log(`📧 店舖名稱: ${shopName}`);
 
       // 在上下文中建立新的分頁物件
       page = await context.newPage();
