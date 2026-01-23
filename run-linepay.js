@@ -172,11 +172,12 @@ const { chromium } = require('playwright');
         await page.getByRole('link', { name: '個月' }).click();
         await page.waitForTimeout(1000);
         await page.getByRole('link', { name: 'EXCEL' }).click();
-        await page.waitForTimeout(2000);
+        await page.waitForTimeout(3000);
 
         // 進入下載頁面並檢測最新一筆正在處理的資料
-        await page.getByRole('link', { name: '下載交易記錄' }).click();
-        await page.waitForTimeout(2000);
+        // 增加超時時間，因為某些帳號可能需要更久才能生成EXCEL
+        await page.getByRole('link', { name: '下載交易記錄' }).click({ timeout: 60000 });
+        await page.waitForTimeout(3000);
 
         // 等待頁面加載並檢測"正在處理"的最新一筆資料
         console.log(`  ⏳ 檢測最新一筆正在處理的資料...`);
@@ -226,8 +227,13 @@ const { chromium } = require('playwright');
           const download = await downloadPromise;
 
           // 將文件保存到C:\trans\linepay
-          const fileName = download.suggestedFilename();
-          const savePath = path.join(linePayPath, fileName);
+          // 保留原始文件名中的日期格式（20251224000000_20260123235959）
+          const originalFileName = download.suggestedFilename();
+          // 提取日期部分（例如：20251224000000_20260123235959 或類似格式）
+          const dateMatch = originalFileName.match(/(\d{14}_\d{14})/);
+          const dateInfo = dateMatch ? dateMatch[1] : 'unknown';
+          const newFileName = `${storeName}-${dateInfo}.xlsx`;
+          const savePath = path.join(linePayPath, newFileName);
           await download.saveAs(savePath);
 
           console.log(`✓ 交易記錄已下載至: ${savePath}`);
