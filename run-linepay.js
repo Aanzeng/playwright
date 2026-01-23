@@ -61,8 +61,12 @@ const { chromium } = require('playwright');
       .trim()
       .split('\n')
       .map(line => {
-        const [id, pw] = line.split(',');
-        return { id: id.trim(), pw: pw.trim() };
+        const [storeName, id, pw] = line.split(',');
+        return { 
+          storeName: storeName.trim(), 
+          id: id.trim(), 
+          pw: pw.trim() 
+        };
       });
 
     // 不要寫死 userDataDir 路徑;可用環境變數 USER_DATA_DIR 覆蓋,否則使用專案目錄下的 user-data
@@ -75,12 +79,15 @@ const { chromium } = require('playwright');
       headless: false // 將 headless 設為 false,使瀏覽器以可視化模式執行
     });
 
-    // 迴圈遍歷每一對 user_ID 和 user_PW
+    // 迴圈遍歷每一對凱證
     for (let i = 0; i < credentials.length; i++) {
+      const storeName = credentials[i].storeName;
       const user_ID = credentials[i].id;
       const user_PW = credentials[i].pw;
 
-      console.log(`\n=== 處理第 ${i + 1} 個帳號: ${user_ID} ===`);
+      console.log(`\n=== 處理第 ${i + 1} 個帳號 ===`);
+      console.log(`🏪 店名: ${storeName}`);
+      console.log(`👤 帳號: ${user_ID}`);
 
       // 在上下文中建立新的分頁物件
       const page = await context.newPage();
