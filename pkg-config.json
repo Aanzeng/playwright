@@ -1,0 +1,16 @@
+{
+  "name": "run-linepay",
+  "version": "1.0.0",
+  "description": "LinePay 交易記錄自動下載工具",
+  "main": "run-linepay.js",
+  "pkg": {
+    "targets": ["win-x64"],
+    "outputPath": "./dist",
+    "scripts": ["./run-linepay.js"],
+    "assets": [
+      "./credentials-linepay.txt",
+      "./package.json"
+    ],
+    "compress": "Brotli"
+  }
+}

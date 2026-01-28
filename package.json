@@ -2,8 +2,11 @@
   "name": "playwright-library-starter-template",
   "version": "1.0.0",
   "main": "run.js",
+  "bin": "run-linepay.js",
   "scripts": {
-    "test": "node run.js"
+    "test": "node run.js",
+    "server": "node server.js",
+    "start": "node server.js"
   },
   "keywords": [],
   "author": "Will 保哥",
@@ -11,7 +14,8 @@
   "description": "1. 初始化專案目錄",
   "dependencies": {
     "@playwright/browser-chromium": "^1.57.0",
-    "playwright": "^1.57.0"
+    "playwright": "^1.57.0",
+    "express": "^4.18.2"
   },
   "repository": {
     "type": "git",

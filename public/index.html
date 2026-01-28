@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>自動化任務執行器</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Microsoft JhengHei', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .container {
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+      max-width: 600px;
+      width: 100%;
+      padding: 40px;
+    }
+
+    h1 {
+      color: #333;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    .subtitle {
+      color: #666;
+      text-align: center;
+      margin-bottom: 30px;
+      font-size: 14px;
+    }
+
+    .script-section {
+      margin-bottom: 30px;
+      padding: 20px;
+      background: #f8f9fa;
+      border-radius: 8px;
+      border-left: 4px solid #667eea;
+    }
+
+    .script-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    .script-name {
+      font-size: 18px;
+      font-weight: bold;
+      color: #333;
+    }
+
+    .status {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: bold;
+    }
+
+    .status.running {
+      background: #d4edda;
+      color: #155724;
+    }
+
+    .status.stopped {
+      background: #f8d7da;
+      color: #721c24;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 10px;
+    }
+
+    button {
+      flex: 1;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .btn-start {
+      background: #28a745;
+      color: white;
+    }
+
+    .btn-start:hover:not(:disabled) {
+      background: #218838;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+    }
+
+    .btn-stop {
+      background: #dc3545;
+      color: white;
+    }
+
+    .btn-stop:hover:not(:disabled) {
+      background: #c82333;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .info-box {
+      background: #e7f3ff;
+      border-left: 4px solid #2196F3;
+      padding: 15px;
+      border-radius: 4px;
+      margin-top: 20px;
+      font-size: 13px;
+      color: #333;
+      line-height: 1.6;
+    }
+
+    .info-box strong {
+      color: #2196F3;
+    }
+
+    .footer {
+      text-align: center;
+      margin-top: 30px;
+      color: #999;
+      font-size: 12px;
+    }
+
+    .last-updated {
+      text-align: center;
+      margin-top: 20px;
+      padding-top: 15px;
+      border-top: 1px solid #eee;
+      color: #999;
+      font-size: 12px;
+    }
+
+    @keyframes pulse {
+      0%, 100% {
+        opacity: 1;
+      }
+      50% {
+        opacity: 0.7;
+      }
+    }
+
+    .status.running {
+      animation: pulse 1.5s infinite;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>⚙️ 自動化任務執行器</h1>
+    <p class="subtitle">點擊下方按鈕執行對應的腳本</p>
+
+    <!-- Cyberbiz 任務 -->
+    <div class="script-section">
+      <div class="script-header">
+        <span class="script-name">🏪 Cyberbiz 訂單爬取</span>
+        <span class="status stopped" id="status-cyberbiz">已停止</span>
+      </div>
+      <div class="button-group">
+        <button class="btn-start" onclick="runScript('run-Cyberbiz.js')">開始執行</button>
+        <button class="btn-stop" onclick="stopScript('run-Cyberbiz.js')">停止</button>
+      </div>
+    </div>
+
+    <!-- LinePay 任務 -->
+    <div class="script-section">
+      <div class="script-header">
+        <span class="script-name">💳 LinePay 交易下載</span>
+        <span class="status stopped" id="status-linepay">已停止</span>
+      </div>
+      <div class="button-group">
+        <button class="btn-start" onclick="runScript('run-linepay.js')">開始執行</button>
+        <button class="btn-stop" onclick="stopScript('run-linepay.js')">停止</button>
+      </div>
+    </div>
+
+    <div class="info-box">
+      <strong>💡 說明：</strong><br>
+      • 按下「開始執行」後，系統會在後台運行選定的腳本<br>
+      • 狀態顯示該腳本是否正在運行<br>
+      • 可隨時按「停止」按鈕終止執行<br>
+      • 建議在執行期間查看控制台查看詳細進度
+    </div>
+
+    <div class="last-updated">
+      最後更新：<span id="update-time">--:--:--</span>
+    </div>
+
+    <div class="footer">
+      <p>Playwright 自動化報告系統</p>
+    </div>
+  </div>
+
+  <script>
+    // 更新狀態
+    async function updateStatus() {
+      try {
+        const response = await fetch('/api/status');
+        const status = await response.json();
+
+        // 更新 Cyberbiz 狀態
+        const cyberbizStatus = document.getElementById('status-cyberbiz');
+        if (status['run-Cyberbiz.js'] === 'running') {
+          cyberbizStatus.textContent = '執行中...';
+          cyberbizStatus.className = 'status running';
+        } else {
+          cyberbizStatus.textContent = '已停止';
+          cyberbizStatus.className = 'status stopped';
+        }
+
+        // 更新 LinePay 狀態
+        const linepayStatus = document.getElementById('status-linepay');
+        if (status['run-linepay.js'] === 'running') {
+          linepayStatus.textContent = '執行中...';
+          linepayStatus.className = 'status running';
+        } else {
+          linepayStatus.textContent = '已停止';
+          linepayStatus.className = 'status stopped';
+        }
+
+        // 更新時間
+        const now = new Date();
+        document.getElementById('update-time').textContent = now.toLocaleTimeString('zh-TW');
+      } catch (error) {
+        console.error('無法更新狀態:', error);
+      }
+    }
+
+    // 執行腳本
+    async function runScript(scriptName) {
+      try {
+        const response = await fetch('/api/run-script', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ scriptName })
+        });
+
+        const data = await response.json();
+        alert(data.message || data.error);
+        
+        // 更新狀態
+        setTimeout(updateStatus, 500);
+      } catch (error) {
+        alert('錯誤: ' + error.message);
+      }
+    }
+
+    // 停止腳本
+    async function stopScript(scriptName) {
+      try {
+        const response = await fetch('/api/stop-script', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ scriptName })
+        });
+
+        const data = await response.json();
+        alert(data.message || data.error);
+        
+        // 更新狀態
+        setTimeout(updateStatus, 500);
+      } catch (error) {
+        alert('錯誤: ' + error.message);
+      }
+    }
+
+    // 初始化 - 定時更新狀態
+    updateStatus();
+    setInterval(updateStatus, 2000);
+  </script>
+</body>
+</html>

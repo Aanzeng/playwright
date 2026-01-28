@@ -1,0 +1,11 @@
+{
+  "name": "run-linepay",
+  "version": "1.0.0",
+  "main": "run-linepay.js",
+  "bin": "run-linepay.js",
+  "description": "LinePay 交易記錄自動下載工具",
+  "dependencies": {
+    "@playwright/browser-chromium": "^1.57.0",
+    "playwright": "^1.57.0"
+  }
+}
