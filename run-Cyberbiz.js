@@ -39,10 +39,17 @@ function findChromiumExecutable() {
         });
 
       for (const chromiumDir of chromiumDirs) {
-        const execPath = path.join(basePath, chromiumDir, 'chrome-win', 'chrome.exe');
-        if (fs.existsSync(execPath)) {
-          console.log(`✓ 找到 Chromium: ${execPath}`);
-          return execPath;
+        // 檢查兩種可能的路徑（新版用 chrome-win64，舊版用 chrome-win）
+        const possibleExecPaths = [
+          path.join(basePath, chromiumDir, 'chrome-win64', 'chrome.exe'),
+          path.join(basePath, chromiumDir, 'chrome-win', 'chrome.exe')
+        ];
+        
+        for (const execPath of possibleExecPaths) {
+          if (fs.existsSync(execPath)) {
+            console.log(`✓ 找到 Chromium: ${execPath}`);
+            return execPath;
+          }
         }
       }
     } catch (err) {
